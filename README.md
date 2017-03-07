@@ -26,9 +26,6 @@ body {
 然后我们在其他的css文件中引用这个common.css，这样就实现了代码的复用，只要是想全局共享的样式和模块，只要在这里添加进去就可以了。
 
 <!-- index.html -->
-
-<!DOCTYPE html>
-<html>
 <head>
   <title>index</title>
   <link rel="stylesheet" type="text/css" href="./style/common.css">
@@ -42,6 +39,5 @@ body {
     ...
   </div>
 </body>
-</html>
 
 nimen
