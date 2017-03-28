@@ -144,3 +144,160 @@ body {
 .m-news { ... }
 .m-copy_right { ... }
 ```
+</br></br>
+css模块化设计原则
+-----
+#### 我们说模块是一个功能相对独立且完整的结构体，其实这应该是 组件 的概念，我们这里只从css的范围内来探讨模块化，那么模块的定义就可以缩窄到：一个（组）样式相对独立且完整的类。比如：
+```
+/* copy_right */
+.m-copy_right {
+  color: #ccc;
+  background: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+  line-height: 1.8;
+}
+/* nav */
+.m-nav {
+  color: #ccc;
+  background: #666;
+  font-size: 14px;
+}
+.m-nav .u-logo { ... }
+.m-nav .list { ... }
+.m-nav .list .item { ... }
+```
+##### 原则上来讲，一个css模块应该遵循以下几点要求：
+  ● `只对外暴露一个类名；`（css模块设计原则第一点）
+ ``` /**
+ * 正确示范，所有模块相关的代码都挂在模块的选择器名下
+ */
+.m-nav { ... }
+.m-nav .list { ... }
+.m-nav .list .item { ... }
+/**
+ * 错误示范，暴露了.m-nav和.list两个类名，污染了空间
+ */
+.m-nav { ... }
+.list { ... }
+.list .item { ... }
+```
+ ##### ● 不影响周围布局：一般情况下，`尽量不要使用一个脱离文档流的布局（既使用了float:left/right，position:absolute/fixed的布局），尽量不要使用外边距（margin）`。这是为了使得模块更加稳定、具备更高的可塑性；（css模块设计原则第二点）
+```
+/**
+ * 正确示范，在common中定义一个模块，在页面css中对模块进行定位和偏移
+ */
+/* common */
+.u-logo {
+  width: 100px;
+  height: 100px;
+}
+.cm-news { //common中定义大体模块样式
+  width: 200px;
+  height: 100px;
+}
+/* index */
+.u-logo {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+}
+.cm-news {  //页面css中进行定位和偏移
+  margin-top: 50px;
+}
+/**
+ * 错误示范，在common中定义一个模块并固定它的位置
+ */
+ ```
+ 
+ ##### ● 模块尽量设计为方便复用的量级，避免大而全，求精巧；（css模块设计原则第三点）
+ ```
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>index</title>
+</head>
+<body>
+  <div class="g-index">
+    <div class="g-bd">
+      <!-- 正确的示范 -->
+      `<!-- 创建一个大的内容块article_box，而不是一个大模块 -->`
+      <div class="article_box">
+        <div class="hd">
+          最新文章
+        </div>
+        <div class="bd">
+          <div class="list">
+            `<!-- 这里我们把每一个项作为可复用的私有模块 -->`
+            <div class="m-list_item">
+              <img class="cover" />
+              <div class="info">
+                <div class="title">
+                  <a href="#">文章标题</a>
+                </div>
+                <div class="desc">文章简介</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ft">
+          `<!-- 这里我们直接引入了一个公共分页模块 -->`
+          <div class="cm-page">
+            <a href="#" class="pg">1</a>
+            <a href="#" class="pg">2</a>
+            <a href="#" class="pg">3</a>
+            <a href="#" class="pg">4</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+<!-- index.html -->
+```
+##### 值得注意的是，这里的原则第三点，并不只是出于css模块化的考虑，事实上这更适用于 组件化 的设计思路，这在后面讲组件化的时候我们会提到。
+
+</br></br>
+通过scss弥补css模块化的缺陷
+------
+#### 大体scss模块化结构（先把结果结构抛出来）
+```
+<!-- common.scss -->
+@import './reset'; //或者normalize.css
+@import './bootstrap.min';
+@import './mixin';  //如果common中没用到mixin，就不引用
+
+<!-- index.scss -->
+@import './common';
+@import './mixin';
+.g-index {
+  ...
+}
+```
+#### css模块化的缺陷：
+  * 冗余 体积庞大的common；
+  * 使用cm-模块区别m-模块，使得后期开发过程中，m-模块向cm-模块转变过程比较繁琐；
+#### 优化方式
+1、mixin.scss 模块化（引用mixin的scss文件才产生空间）
+如果我们使用mixin来代替直接书写模块，由于mixin并不直接生成代码，而是通过主动引用，才能生成对应内容，那么理论上，common就可以无限多地存放模块而不必占用一点空间
+把common中的模块全部打包成mixin：
+```
+/* common.css */
+.m-nav { ... }
+.m-news { ... }
+.m-copy_right { ... }
+改造后
+// common.scss
+@mixin m-nav {
+  .m-nav { ... }
+}
+@mixin m-news {
+  .m-news { ... }
+}
+@mixin m-copy_right {
+  .m-copy_right { ... }
+}
+```
